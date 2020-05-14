@@ -10,14 +10,17 @@ import {GridCellLeft, IconWrapper} from './styles';
 type Props = {
   onClick: () => void;
   quantity: number;
+  hasBeenExpanded: boolean;
 };
 
-const CollapsedInfo = ({quantity, onClick}: Props) => (
+const CollapsedInfo = ({quantity, onClick, hasBeenExpanded}: Props) => (
   <Wrapper data-test-id="breadcrumb-collapsed" onClick={onClick}>
     <IconWrapper>
       <IconEllipsis />
     </IconWrapper>
-    {tct('Show [quantity] collapsed crumbs', {quantity})}
+    {hasBeenExpanded
+      ? tct('Hide [quantity] expanded crumbs', {quantity})
+      : tct('Show [quantity] collapsed crumbs', {quantity})}
   </Wrapper>
 );
 

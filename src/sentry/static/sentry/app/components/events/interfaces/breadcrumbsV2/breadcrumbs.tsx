@@ -39,6 +39,7 @@ type State = {
   filteredByFilter: BreadcrumbsWithDetails;
   filteredByCustomSearch: BreadcrumbsWithDetails;
   filteredBreadcrumbs: BreadcrumbsWithDetails;
+  filteredCollapsed: BreadcrumbsWithDetails;
   filterOptions: FilterOptions;
   listBodyHeight?: React.CSSProperties['maxHeight'];
 };
@@ -60,6 +61,7 @@ class Breadcrumbs extends React.Component<Props, State> {
     filteredByFilter: [],
     filteredByCustomSearch: [],
     filteredBreadcrumbs: [],
+    filteredCollapsed: [],
     filterOptions: [[], []],
   };
 
@@ -210,24 +212,17 @@ class Breadcrumbs extends React.Component<Props, State> {
     };
   };
 
-  getCollapsedCrumbQuantity = (): {
-    filteredCollapsedBreadcrumbs: BreadcrumbsWithDetails;
-    collapsedQuantity: number;
-  } => {
+  collapsedCrumbs = () => {
     const {isCollapsed, filteredBreadcrumbs} = this.state;
 
-    let filteredCollapsedBreadcrumbs = filteredBreadcrumbs;
+    let filteredCollapsed = filteredBreadcrumbs;
 
-    if (isCollapsed && filteredCollapsedBreadcrumbs.length > MAX_CRUMBS_WHEN_COLLAPSED) {
-      filteredCollapsedBreadcrumbs = filteredCollapsedBreadcrumbs.slice(
-        -MAX_CRUMBS_WHEN_COLLAPSED
-      );
+    if (isCollapsed && filteredCollapsed.length > MAX_CRUMBS_WHEN_COLLAPSED) {
+      filteredCollapsed = filteredCollapsed.slice(-MAX_CRUMBS_WHEN_COLLAPSED);
     }
-
-    return {
-      filteredCollapsedBreadcrumbs,
-      collapsedQuantity: filteredBreadcrumbs.length - filteredCollapsedBreadcrumbs.length,
-    };
+    this.setState({
+      filteredCollapsed,
+    });
   };
 
   handleFilterBySearchTerm = (value: string) => {
@@ -248,16 +243,22 @@ class Breadcrumbs extends React.Component<Props, State> {
       })
     );
 
-    this.setState({
-      searchTerm,
-      filteredBreadcrumbs,
-    });
+    this.setState(
+      {
+        searchTerm,
+        filteredBreadcrumbs,
+      },
+      this.collapsedCrumbs
+    );
   };
 
   handleToggleCollapse = () => {
-    this.setState(prevState => ({
-      isCollapsed: !prevState.isCollapsed,
-    }));
+    this.setState(
+      prevState => ({
+        isCollapsed: !prevState.isCollapsed,
+      }),
+      this.collapsedCrumbs
+    );
   };
 
   handleCleanSearch = () => {
@@ -340,12 +341,14 @@ class Breadcrumbs extends React.Component<Props, State> {
 
   render() {
     const {type, event, orgId} = this.props;
-    const {filterOptions, searchTerm, listBodyHeight} = this.state;
-
     const {
-      collapsedQuantity,
-      filteredCollapsedBreadcrumbs,
-    } = this.getCollapsedCrumbQuantity();
+      filterOptions,
+      searchTerm,
+      listBodyHeight,
+      filteredCollapsed,
+      filteredBreadcrumbs,
+      isCollapsed,
+    } = this.state;
 
     return (
       <EventDataSection
@@ -373,15 +376,20 @@ class Breadcrumbs extends React.Component<Props, State> {
         isCentered
       >
         <Content>
-          {filteredCollapsedBreadcrumbs.length > 0 ? (
+          {filteredBreadcrumbs.length > 0 ? (
             <React.Fragment>
               <ListHeader />
               <ListBody
                 event={event}
                 orgId={orgId}
+                hasBeenExpanded={!isCollapsed}
                 onToggleCollapse={this.handleToggleCollapse}
-                collapsedQuantity={collapsedQuantity}
-                breadcrumbs={filteredCollapsedBreadcrumbs}
+                collapsedQuantity={
+                  !isCollapsed
+                    ? filteredCollapsed.length - MAX_CRUMBS_WHEN_COLLAPSED
+                    : filteredBreadcrumbs.length - filteredCollapsed.length
+                }
+                breadcrumbs={filteredBreadcrumbs}
                 maxHeight={listBodyHeight}
                 ref={this.listBodyRef}
               />

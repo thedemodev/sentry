@@ -21,6 +21,7 @@ type Breadcrumbs = Array<Breadcrumb & BreadcrumbDetails & {id: number}>;
 type Props = {
   breadcrumbs: Breadcrumbs;
   collapsedQuantity: number;
+  hasBeenExpanded: boolean;
   onToggleCollapse: () => void;
   event: Event;
   orgId: string | null;
@@ -28,13 +29,25 @@ type Props = {
 };
 
 const ListBody = React.forwardRef<HTMLDivElement, Props>(function ListBody(
-  {collapsedQuantity, onToggleCollapse, orgId, event, maxHeight, breadcrumbs},
+  {
+    collapsedQuantity,
+    onToggleCollapse,
+    orgId,
+    event,
+    maxHeight,
+    breadcrumbs,
+    hasBeenExpanded,
+  },
   ref
 ) {
   return (
     <StyledGrid maxHeight={maxHeight} ref={ref}>
       {collapsedQuantity > 0 && (
-        <CollapsedInfo onClick={onToggleCollapse} quantity={collapsedQuantity} />
+        <CollapsedInfo
+          onClick={onToggleCollapse}
+          quantity={collapsedQuantity}
+          hasBeenExpanded={hasBeenExpanded}
+        />
       )}
       {breadcrumbs.map(({color, icon, ...crumb}, idx) => {
         const hasError = crumb.type === BreadcrumbType.ERROR;
@@ -70,6 +83,7 @@ export default ListBody;
 ListBody.propTypes = {
   breadcrumbs: PropTypes.array.isRequired,
   collapsedQuantity: PropTypes.number.isRequired,
+  hasBeenExpanded: PropTypes.bool.isRequired,
   onToggleCollapse: PropTypes.func.isRequired,
   event: SentryTypes.Event.isRequired,
   orgId: PropTypes.string.isRequired,
