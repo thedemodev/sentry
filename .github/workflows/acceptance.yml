@@ -219,7 +219,7 @@ jobs:
         - name: Add pytest log matcher
           if: always()
           run: |
-            echo "::remove-matcher owner=tsc::"
+            echo "::remove-matcher owner=pytest::"
             echo "::add-matcher::.github/pytest.json"
 
         - name: Acceptance tests (#${{ matrix.instance }} of ${{ strategy.job-total }})
