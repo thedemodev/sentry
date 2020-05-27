@@ -32,6 +32,7 @@ class ApiApplicationTest(AcceptanceTestCase):
         self.path = "/api/applications/"
 
     def test_simple(self):
+        assert False
         self.browser.get(self.path)
         self.browser.wait_until_not(".loading")
         self.browser.snapshot("api applications - no applications")
