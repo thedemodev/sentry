@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from django.db import IntegrityError
 from sentry.data_export.base import ExportQueryType
 from sentry.data_export.models import ExportedData
 from sentry.data_export.tasks import assemble_download
@@ -141,7 +142,7 @@ class AssembleDownloadTest(TestCase, SnubaTestCase):
             query_info={"project": [self.project.id], "field": ["title"], "query": ""},
         )
         with self.tasks():
-            assemble_download(de.id)
+            assemble_download(de.id, batch_size=1)
         de = ExportedData.objects.get(id=de.id)
         assert de.date_finished is not None
         assert de.date_expired is not None
@@ -155,6 +156,7 @@ class AssembleDownloadTest(TestCase, SnubaTestCase):
         assert raw1.startswith("<unlabeled event>")
         assert raw2.startswith("<unlabeled event>")
         assert raw3.startswith("<unlabeled event>")
+        assert False
 
     @patch("sentry.snuba.discover.raw_query")
     @patch("sentry.data_export.models.ExportedData.email_failure")
@@ -286,3 +288,18 @@ class AssembleDownloadTest(TestCase, SnubaTestCase):
             assemble_download(de.id)
         error = emailer.call_args[1]["message"]
         assert error == "Internal error. Your query failed to run."
+
+    @patch("sentry.data_export.models.ExportedData.finalize_upload")
+    @patch("sentry.data_export.models.ExportedData.email_failure")
+    def test_discover_integrity_error(self, emailer, finalize_upload):
+        de = ExportedData.objects.create(
+            user=self.user,
+            organization=self.org,
+            query_type=ExportQueryType.DISCOVER,
+            query_info={"project": [self.project.id], "field": ["title"], "query": ""},
+        )
+        finalize_upload.side_effect = IntegrityError("test")
+        with self.tasks():
+            assemble_download(de.id)
+        error = emailer.call_args[1]["message"]
+        assert error == "Failed to save the assembled file."
