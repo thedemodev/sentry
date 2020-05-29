@@ -171,7 +171,7 @@ const TRANSFORM_AGGREGATES = {
   apdex: '',
   impact: '',
   user_misery: '',
-  error_rate: '',
+  failure_rate: '',
 } as const;
 
 /**

@@ -39,10 +39,10 @@ export const PRESET_AGGREGATES = [
     default: 'count()',
   },
   {
-    match: /^error_rate\(\)/,
-    name: 'Error rate',
+    match: /^failure_rate\(\)/,
+    name: 'Failure rate',
     validDataset: [Dataset.TRANSACTIONS],
-    default: 'error_rate()',
+    default: 'failure_rate()',
   },
 ];
 
