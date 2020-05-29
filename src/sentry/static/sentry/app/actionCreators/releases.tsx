@@ -37,7 +37,7 @@ export function getRelease(api: Client, params: ParamsGet) {
 
 export function getReleaseDeploys(api: Client, params: ParamsGet) {
   const {orgSlug, projectSlug, releaseVersion} = params;
-  const path = `/projects/${orgSlug}/${projectSlug}/releases/${encodeURIComponent(
+  const path = `/organizations/${orgSlug}/releases/${encodeURIComponent(
     releaseVersion
   )}/deploys/`;
 

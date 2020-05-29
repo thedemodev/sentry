@@ -11,6 +11,8 @@ import {getRepositories} from 'app/actionCreators/repositories';
 type InjectedProps = {
   api: Client;
   orgSlug: string;
+  projectSlug: string;
+  releaseVersion: string;
 };
 
 type State = {
@@ -61,8 +63,8 @@ const withRepositories = <P extends InjectedProps>(
     render() {
       return (
         <WrappedComponent
-          repositories={this.state.Repo as Array<Repository>}
           {...(this.props as P)}
+          repositories={this.state.Repo as Array<Repository>}
         />
       );
     },

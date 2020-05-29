@@ -78,9 +78,9 @@ const withRelease = <P extends InjectedProps>(WrappedComponent: React.ComponentT
     render() {
       return (
         <WrappedComponent
+          {...this.props}
           release={this.state.Release as Release}
           deploys={this.state.deploys as Deploy[]}
-          {...(this.props as P)}
         />
       );
     },

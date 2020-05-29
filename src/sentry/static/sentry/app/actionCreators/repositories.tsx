@@ -10,19 +10,19 @@ type ParamsGet = {
 
 export function getRepositories(api: Client, params: ParamsGet) {
   const {orgSlug} = params;
-  const path = `/projects/${orgSlug}/repos/`;
+  const path = `/organizations/${orgSlug}/repos/`;
 
-  RepoActions.loadRepo(orgSlug);
+  RepoActions.loadRepos(orgSlug);
 
   return api
     .requestPromise(path, {
       method: 'GET',
     })
     .then((res: Repository[]) => {
-      RepoActions.loadRepoSuccess(orgSlug, res);
+      RepoActions.loadReposSuccess(orgSlug, res);
     })
     .catch(err => {
-      RepoActions.loadRepoError(orgSlug, err);
+      RepoActions.loadReposError(orgSlug, err);
       Sentry.withScope(scope => {
         scope.setLevel(Sentry.Severity.Warning);
         scope.setFingerprint(['getRepositories-action-creator']);
