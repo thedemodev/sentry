@@ -10,7 +10,14 @@ from hashlib import sha1
 from django.core.files.base import ContentFile
 from django.db import transaction, IntegrityError
 
-from sentry.models import AssembleChecksumMismatch, DEFAULT_BLOB_SIZE, File, FileBlob, FileBlobIndex
+from sentry.models import (
+    AssembleChecksumMismatch,
+    DEFAULT_BLOB_SIZE,
+    File,
+    FileBlob,
+    FileBlobIndex,
+    MAX_FILE_SIZE,
+)
 from sentry.tasks.base import instrumented_task
 from sentry.utils import metrics
 from sentry.utils.sdk import capture_exception
@@ -148,7 +155,7 @@ def store_export_chunk_as_blob(data_export, bytes_written, fileobj, blob_size=DE
     while True:
         contents = fileobj.read(blob_size)
         if not contents:
-            break
+            return bytes_offset
 
         blob_fileobj = ContentFile(contents)
         blob = FileBlob.from_file(blob_fileobj, logger=logger)
@@ -157,7 +164,9 @@ def store_export_chunk_as_blob(data_export, bytes_written, fileobj, blob_size=DE
         )
 
         bytes_offset += blob.size
-    return bytes_offset
+        if bytes_written + bytes_offset >= MAX_FILE_SIZE:
+            transaction.set_rollback(True)
+            return 0
 
 
 @instrumented_task(name="sentry.data_export.tasks.merge_blobs", queue="data_export")
