@@ -16,20 +16,20 @@ import {defined} from 'app/utils';
 
 import {
   Breadcrumb,
-  BreadcrumbDetails,
+  BreadcrumbsWithDetails,
   BreadcrumbType,
   BreadcrumbLevelType,
 } from './types';
 import transformCrumbs from './transformCrumbs';
 import Filter from './filter/filter';
 import ListHeader from './listHeader';
+import ListCollapse from './listCollapse';
 import ListBody from './listBody';
 import Level from './level';
 import Icon from './icon';
 
 const MAX_CRUMBS_WHEN_COLLAPSED = 10;
 
-type BreadcrumbsWithDetails = Array<Breadcrumb & BreadcrumbDetails & {id: number}>;
 type FilterOptions = React.ComponentProps<typeof Filter>['options'];
 
 type State = {
@@ -42,6 +42,7 @@ type State = {
   filteredCollapsed: BreadcrumbsWithDetails;
   filterOptions: FilterOptions;
   listBodyHeight?: React.CSSProperties['maxHeight'];
+  // scrollHeight: number;
 };
 
 type Props = {
@@ -102,9 +103,18 @@ class Breadcrumbs extends React.Component<Props, State> {
       filteredBreadcrumbs: tranformedCrumbs,
       filteredByFilter: tranformedCrumbs,
       filteredByCustomSearch: tranformedCrumbs,
+      filteredCollapsed: this.getCollapsedBreadcrumbs(
+        this.state.isCollapsed,
+        tranformedCrumbs
+      ),
       filterOptions,
     });
   };
+
+  getCollapsedBreadcrumbs = (isCollapsed: boolean, breadcrumbs: BreadcrumbsWithDetails) =>
+    isCollapsed && breadcrumbs.length > MAX_CRUMBS_WHEN_COLLAPSED
+      ? breadcrumbs.slice(-MAX_CRUMBS_WHEN_COLLAPSED)
+      : breadcrumbs;
 
   getFilterOptions = (breadcrumbs: ReturnType<typeof transformCrumbs>): FilterOptions => {
     const types = this.getFilterTypes(breadcrumbs);
@@ -212,16 +222,6 @@ class Breadcrumbs extends React.Component<Props, State> {
     };
   };
 
-  collapsedCrumbs = () => {
-    this.setState(prevState => ({
-      filteredCollapsed:
-        prevState.isCollapsed &&
-        prevState.filteredBreadcrumbs.length > MAX_CRUMBS_WHEN_COLLAPSED
-          ? prevState.filteredBreadcrumbs.slice(-MAX_CRUMBS_WHEN_COLLAPSED)
-          : prevState.filteredBreadcrumbs,
-    }));
-  };
-
   handleFilterBySearchTerm = (value: string) => {
     const {filteredByFilter} = this.state;
 
@@ -250,12 +250,55 @@ class Breadcrumbs extends React.Component<Props, State> {
   };
 
   handleToggleCollapse = () => {
-    this.setState(
-      prevState => ({
-        isCollapsed: !prevState.isCollapsed,
-      }),
-      this.collapsedCrumbs
-    );
+    const {isCollapsed, breadcrumbs} = this.state;
+
+    if (isCollapsed) {
+      this.setState(
+        {
+          isCollapsed: false,
+          filteredCollapsed: this.getCollapsedBreadcrumbs(false, breadcrumbs),
+        },
+        () => {
+          this.scrollTo('bottom');
+        }
+      );
+      return;
+    }
+
+    this.scrollTo('top');
+    setTimeout(() => {
+      this.setState({
+        isCollapsed: true,
+        filteredCollapsed: this.getCollapsedBreadcrumbs(true, breadcrumbs),
+      });
+    }, 1000);
+  };
+
+  scrollTo = (to: 'top' | 'bottom') => {
+    if (!this.listBodyRef?.current) {
+      return;
+    }
+    if (to === 'top') {
+      this.scrollToTheTop(this.listBodyRef.current);
+      return;
+    }
+    this.scrollToTheBottom(this.listBodyRef.current);
+  };
+
+  scrollToTheBottom = (element: HTMLDivElement) => {
+    element.scrollTo({
+      top: element.scrollHeight,
+      left: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  scrollToTheTop = (element: HTMLDivElement) => {
+    element.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth',
+    });
   };
 
   handleCleanSearch = () => {
@@ -373,20 +416,22 @@ class Breadcrumbs extends React.Component<Props, State> {
         isCentered
       >
         <Content>
-          {filteredBreadcrumbs.length > 0 ? (
+          {filteredCollapsed.length > 0 ? (
             <React.Fragment>
               <ListHeader />
-              <ListBody
-                event={event}
-                orgId={orgId}
+              <ListCollapse
                 hasBeenExpanded={!isCollapsed}
-                onToggleCollapse={this.handleToggleCollapse}
-                collapsedQuantity={
+                onClick={this.handleToggleCollapse}
+                quantity={
                   !isCollapsed
                     ? filteredCollapsed.length - MAX_CRUMBS_WHEN_COLLAPSED
                     : filteredBreadcrumbs.length - filteredCollapsed.length
                 }
-                breadcrumbs={filteredBreadcrumbs}
+              />
+              <ListBody
+                event={event}
+                orgId={orgId}
+                breadcrumbs={filteredCollapsed}
                 maxHeight={listBodyHeight}
                 ref={this.listBodyRef}
               />
