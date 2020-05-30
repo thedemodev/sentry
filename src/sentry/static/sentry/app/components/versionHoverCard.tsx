@@ -12,6 +12,8 @@ import RepoLabel from 'app/components/repoLabel';
 import TimeSince from 'app/components/timeSince';
 import space from 'app/styles/space';
 import withApi from 'app/utils/withApi';
+import withRelease from 'app/utils/withRelease';
+import withRepositories from 'app/utils/withRepositories';
 import Clipboard from 'app/components/clipboard';
 import {IconCopy} from 'app/icons';
 import Version from 'app/components/version';
@@ -35,7 +37,7 @@ type State = {
 };
 
 class VersionHoverCard extends React.Component<Props, State> {
-  state: State = {
+  state = {
     loading: true,
     error: false,
     data: {},
@@ -43,12 +45,13 @@ class VersionHoverCard extends React.Component<Props, State> {
     hasRepos: false,
     deploys: [],
     release: null,
-  };
+  } as State;
 
   componentDidMount() {
-    this.fetchData();
+    // this.fetchData();
   }
 
+  /*
   async fetchData() {
     const {api, orgSlug, projectSlug, releaseVersion} = this.props;
 
@@ -89,6 +92,7 @@ class VersionHoverCard extends React.Component<Props, State> {
       this.setState({error: true});
     }
   }
+  */
 
   toggleHovercard() {
     this.setState({
@@ -117,13 +121,13 @@ class VersionHoverCard extends React.Component<Props, State> {
   }
 
   getBody() {
-    const {releaseVersion} = this.props;
+    const {releaseVersion, release, deploys} = this.props;
     const {release, deploys} = this.state;
     if (!release) {
       return {header: null, body: null};
     }
 
-    const {lastCommit} = release;
+    const lastCommit = release.lastCommit;
     const recentDeploysByEnvironment = deploys.reduce(function(dbe, deploy) {
       const {dateFinished, environment} = deploy;
       if (!dbe.hasOwnProperty(environment)) {
@@ -200,6 +204,14 @@ class VersionHoverCard extends React.Component<Props, State> {
   }
 
   render() {
+    const {
+      deploys,
+      deploysLoading,
+      deploysError,
+      release,
+      releaseLoading,
+      releaseError,
+    } = this.props;
     const {loading, error, hasRepos, release} = this.state;
     let header: React.ReactNode = null;
     let body: React.ReactNode = null;
@@ -225,7 +237,7 @@ class VersionHoverCard extends React.Component<Props, State> {
 
 export {VersionHoverCard};
 
-export default withApi(VersionHoverCard);
+export default withApi(withRelease(withRepositories(VersionHoverCard)));
 
 const ConnectRepo = styled('div')`
   padding: ${space(2)};

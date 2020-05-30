@@ -16,7 +16,9 @@ type InjectedProps = {
 };
 
 type State = {
-  repos: Array<Repository> | undefined;
+  repos?: Array<Repository>;
+  reposLoading?: boolean;
+  reposError?: Error;
 };
 
 const withRepositories = <P extends InjectedProps>(
@@ -56,17 +58,11 @@ const withRepositories = <P extends InjectedProps>(
       const {orgSlug} = this.props as P & InjectedProps;
       const repoData = RepositoryStore.get(orgSlug);
 
-      console.log('onStoreUpdate', repoData);
       this.setState({repo: repoData.repos});
     },
 
     render() {
-      return (
-        <WrappedComponent
-          {...(this.props as P)}
-          repositories={this.state.Repo as Array<Repository>}
-        />
-      );
+      return <WrappedComponent {...(this.props as P)} {...this.state} />;
     },
   });
 

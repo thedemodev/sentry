@@ -6,6 +6,7 @@ import 'focus-visible';
 
 import 'app/utils/statics-setup';
 import 'app/utils/emotion-setup';
+import 'app/utils/silence-react-unsafe-warnings';
 
 import PropTypes from 'prop-types';
 import React from 'react';

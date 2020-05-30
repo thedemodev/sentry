@@ -34,6 +34,7 @@ class OrganizationGroupDetails extends React.Component<Props> {
    * See "page-issue-list-start" for explanation on hot/cold-starts
    */
   startMetricCollection() {
+    console.log('app.page.perf.issue-details START');
     const startType = isLightweightOrganization(this.props.organization)
       ? 'cold-start'
       : 'warm-start';

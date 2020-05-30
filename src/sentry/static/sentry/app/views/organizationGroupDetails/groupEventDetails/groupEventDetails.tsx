@@ -98,6 +98,7 @@ class GroupEventDetails extends React.Component<Props, State> {
 
     // First Meaningful Paint for /organizations/:orgId/issues/:groupId/
     if (prevState.loading && !this.state.loading && prevState.event === null) {
+      console.log('app.page.perf.issue-details END');
       metric.measure({
         name: 'app.page.perf.issue-details',
         start: 'page-issue-details-start',
@@ -125,6 +126,7 @@ class GroupEventDetails extends React.Component<Props, State> {
   }
 
   fetchData = async () => {
+    console.log('GroupEventDetails', 'fetchData');
     const {api, group, project, organization, params, environments} = this.props;
     const eventId = params.eventId || 'latest';
     const groupId = group.id;

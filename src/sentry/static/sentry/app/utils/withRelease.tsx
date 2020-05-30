@@ -16,7 +16,12 @@ type InjectedProps = {
 };
 
 type State = {
-  release: Release | undefined;
+  release?: Release;
+  releaseLoading?: boolean;
+  releaseError?: Error;
+  deploys?: Array<Deploy>;
+  deploysLoading?: boolean;
+  deploysError?: Error;
 };
 
 const withRelease = <P extends InjectedProps>(WrappedComponent: React.ComponentType<P>) =>
@@ -71,18 +76,11 @@ const withRelease = <P extends InjectedProps>(WrappedComponent: React.ComponentT
       const {projectSlug, releaseVersion} = this.props as P & InjectedProps;
       const releaseData = ReleaseStore.get(projectSlug, releaseVersion);
 
-      console.log('onStoreUpdate', releaseData);
-      this.setState({release: releaseData.release, deploys: releaseData.deploys});
+      this.setState({...releaseData});
     },
 
     render() {
-      return (
-        <WrappedComponent
-          {...this.props}
-          release={this.state.Release as Release}
-          deploys={this.state.deploys as Deploy[]}
-        />
-      );
+      return <WrappedComponent {...this.props} {...this.state} />;
     },
   });
 
